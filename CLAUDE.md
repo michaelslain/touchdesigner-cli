@@ -12,7 +12,7 @@
 TCP client/server pattern:
 
 - **Client** (`src/client/tcp-client.ts`): Sends JSON requests over TCP to TouchDesigner, reads JSON responses. Configurable via `TD_HOST`/`TD_PORT` env vars. Default port 9005, 5s timeout.
-- **Server** (`server/td-server.py`): Python TCP server running inside TouchDesigner process. Threaded, handles line-delimited JSON.
+- **Server** (`server/td-server.py`): Python TCP server running inside TouchDesigner process. Threaded, handles line-delimited JSON. TCP threads queue requests; an Execute DAT's `onFrameStart` callback drains the queue on TD's main thread to avoid thread conflicts.
 - **Protocol** (`src/protocol/types.ts`): Request `{id, action, params}`, Response `{id, status, data|error}`. Actions: `info`, `project.create`, `node.*`, `param.*`, `exec`.
 
 ## Commands

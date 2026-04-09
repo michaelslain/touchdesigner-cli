@@ -153,7 +153,7 @@ function patchTemplate() {
 def onStart():
 \tserver_path = os.path.expanduser('~/.td-cli/td-server.py')
 \tif os.path.exists(server_path):
-\t\texec(open(server_path).read())
+\t\texec(open(server_path).read(), globals())
 \treturn
 
 def create():
@@ -163,7 +163,9 @@ def onExit():
 \treturn
 
 def onFrameStart(frame):
-\treturn
+\timport td as _td
+\tif hasattr(_td, '_cli_process'):
+\t\t_td._cli_process()
 
 def onFrameEnd(frame):
 \treturn

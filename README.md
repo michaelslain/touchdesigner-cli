@@ -17,9 +17,13 @@ Run the setup command to install the TCP server script into TouchDesigner:
 
 ```bash
 td setup
+td setup --port 9010
+td setup --uninstall
 ```
 
-This copies a Python server script to `~/.td-cli/td-server.py` and patches your TouchDesigner project to run it on startup.
+This copies a Python server script to `~/.td-cli/td-server.py` and patches TouchDesigner's default project template to auto-start the server. An Execute DAT runs the server on startup and processes CLI requests on TD's main thread each frame.
+
+Use `--port` to override the default port (9005). Use `--uninstall` to remove the server script and restore the original template.
 
 ## Usage
 
@@ -70,7 +74,7 @@ The CLI connects to TouchDesigner via TCP. Set these environment variables to ov
 | Variable  | Default     | Description        |
 | --------- | ----------- | ------------------ |
 | `TD_HOST` | `127.0.0.1` | TouchDesigner host |
-| `TD_PORT` | `9090`      | TouchDesigner port |
+| `TD_PORT` | `9005`      | TouchDesigner port |
 
 ## Requirements
 

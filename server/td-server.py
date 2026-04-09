@@ -1,15 +1,20 @@
 """
 TouchDesigner CLI Server
 Listens on a TCP port and executes commands via TD's Python API.
+All TD API calls are dispatched to the main thread via run() to avoid thread conflicts.
 Install: Run 'td setup' from the touchdesigner-cli tool.
 """
 
 import socket
 import json
 import threading
+import queue as _queue
 
 PORT = 9005
 HOST = "127.0.0.1"
+
+_request_queue = _queue.Queue()
+
 
 def handle_action(action, params):
     if action == "info":
@@ -131,6 +136,41 @@ def handle_action(action, params):
         raise ValueError(f"Unknown action: {action}")
 
 
+def _process_requests():
+    """Called on TD main thread via run(). Drains the request queue."""
+    while not _request_queue.empty():
+        try:
+            action, params, result_holder, event = _request_queue.get_nowait()
+            try:
+                data = handle_action(action, params)
+                result_holder["status"] = "ok"
+                result_holder["data"] = data
+            except Exception as e:
+                result_holder["status"] = "error"
+                result_holder["error"] = str(e)
+            finally:
+                event.set()
+        except _queue.Empty:
+            break
+
+
+# Store processor on td module so run() can find it
+import td as _td_module
+_td_module._cli_process = _process_requests
+
+
+def _dispatch(action, params):
+    """Called from TCP threads. Queues work and waits for main thread."""
+    result_holder = {}
+    event = threading.Event()
+    _request_queue.put((action, params, result_holder, event))
+    if not event.wait(timeout=10):
+        raise TimeoutError("TouchDesigner main thread did not respond within 10s")
+    if result_holder["status"] == "error":
+        raise ValueError(result_holder["error"])
+    return result_holder["data"]
+
+
 def handle_client(conn, addr):
     try:
         buffer = ""
@@ -149,7 +189,7 @@ def handle_client(conn, addr):
                     req_id = req.get("id", "unknown")
                     action = req.get("action", "")
                     params = req.get("params", {})
-                    data = handle_action(action, params)
+                    data = _dispatch(action, params)
                     response = {"id": req_id, "status": "ok", "data": data}
                 except Exception as e:
                     response = {"id": req_id, "status": "error", "error": str(e)}
