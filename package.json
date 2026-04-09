@@ -5,6 +5,13 @@
   "bin": {
     "td": "./src/index.ts"
   },
+  "files": [
+    "src",
+    "server",
+    "docs",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
     "dev": "bun run src/index.ts",
     "test": "bun test"
