@@ -48,7 +48,8 @@ def handle_action(action, params):
         parent = op(parent_path)
         if parent is None:
             raise ValueError(f"Parent not found: {parent_path}")
-        td_type = globals().get(node_type)
+        import td as _td
+        td_type = getattr(_td, node_type, None)
         if td_type is None:
             raise ValueError(f"Unknown node type: {node_type}")
         node = parent.create(td_type, node_name or "")

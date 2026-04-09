@@ -145,7 +145,7 @@ function patchTemplate() {
 
   writeFileSync(
     join(project1Dir, "td_cli_server.parm"),
-    "?\nactive 0 on\nexecuteloc 0 current\nstart 0 on\n?\n"
+    "?\nactive 0 on\nexecuteloc 0 current\nstart 0 on\nframestart 0 on\n?\n"
   );
 
   const onStartScript = `import os
